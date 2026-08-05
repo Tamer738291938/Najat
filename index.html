@@ -395,7 +395,7 @@ footer{border-top:1px solid var(--line);background:var(--surface)}
 <footer>
   <div class="foot-inner">
     <span><b>مدارس النجاة</b> — لوحة متابعة الخطة التشغيلية 2026-2027 · مشروع المدارس ثنائية القدرات والمهارات</span>
-    <span>هوية راسخة — تعليم معاصر — أثر ممتد</span>
+    <span>هوية راسخة — تعليم معاصر — أثر ممتد · <a href="admin.html" style="color:var(--teal);text-decoration:none">🔐 تحرير البيانات</a></span>
   </div>
 </footer>
 
@@ -572,15 +572,18 @@ function parseResponses(rows){
 async function loadData(){
   if(!CONFIG.SHEET_ID){useEmbedded("وضع العرض التجريبي: لم يُربط Google Sheet بعد");return;}
   try{
-    const [a,k,d,r,resp]=await Promise.all([
+    const [a,k,d,r,resp,sch]=await Promise.all([
       fetchTab("الأنشطة"),fetchTab("المؤشرات"),fetchTab("التبعيات الحرجة"),
-      fetchTab("المخاطر"),fetchTab("استجابات_المؤشرات")]);
+      fetchTab("المخاطر"),fetchTab("مدخلات المدارس"),fetchTab("المدارس")]);
+    const schoolList=sch.slice(1).map(x=>(x[0]||"").trim()).filter(Boolean);
+    if(schoolList.length)CONFIG.EXPECTED_SCHOOLS=schoolList.length;
     ACTS=a.slice(1).filter(x=>num(x[0])!=null).map(x=>[+x[0],x[1],x[2],x[3],x[4],x[5],(x[6]||"").trim()||"لم يبدأ"]);
     KPIS=k.slice(1).filter(x=>/^KPI/.test(x[0])).map(x=>[
       x[0].trim(),x[1],x[2],x[3],x[4],
       num(x[6]),num(x[9]),   /* مستهدف فصل1، مستهدف نهاية العام */
-      null,null,             /* الفعلي: يُحتسب من تقارير المدارس */
-      "","",(x[12]||"").trim()]);
+      null,null,             /* الفعلي: مدخلات المدارس أولاً ثم المركزي */
+      "","",(x[12]||"").trim(),
+      num(x[7]),num(x[10])]); /* [12],[13] الفعلي المركزي الاحتياطي */
     DEPS=d.slice(1).filter(x=>num(x[0])!=null).map(x=>[+x[0],x[1],x[2],x[3],(x[4]||"").trim()||"لم يبدأ",x[5]||""]);
     RISKS=r.slice(1).filter(x=>/^R\d/.test(x[0])).map(x=>[x[0].trim(),x[1],(x[2]||"").trim(),x[3],x[4],(x[5]||"").trim()||"مفتوح"]);
     RESP=parseResponses(resp);
@@ -615,7 +618,8 @@ function computeActuals(){
     [["الفصل الأول",7],["نهاية العام",8]].forEach(([per,idx])=>{
       const m=latestBySchool(k[0],per);
       const vs=Object.values(m).map(o=>normVal(k,o.v));
-      k[idx]=vs.length? vs.reduce((s,v)=>s+v,0)/vs.length : null;
+      const central=idx===7?k[12]:k[13];
+      k[idx]=vs.length? vs.reduce((s,v)=>s+v,0)/vs.length : (central!=null?central:null);
     });
     k[9]=kpiStatus(k[7],k[5]);
     k[10]=kpiStatus(k[8],k[6]);
@@ -663,7 +667,7 @@ function renderOverview(){
   $("#t-acts").textContent=progressPct+"%";
   $("#t-acts-foot").innerHTML=`<span class="badge b-done">✓ منجز ${st.done}</span> <span class="badge b-prog">جارٍ ${st.prog}</span> <span class="badge b-idle">لم يبدأ ${st.idle}</span>${st.late?` <span class="badge b-late">⚠ متأخر ${st.late}</span>`:""}`;
   $("#t-kpi").innerHTML=`${measured1}<small>/${measurable1}</small>`;
-  $("#t-kpi-foot").textContent=measured1?"متوسط ما أبلغت عنه المدارس للفصل الأول":"لم تصل تقارير مؤشرات من المدارس بعد";
+  $("#t-kpi-foot").textContent=measured1?"من مدخلات المدارس والفعلي المركزي":"لا قياسات مسجلة بعد";
   $("#t-dep").innerHTML=`${depDone}<small>/${DEPS.length}</small>`;
   $("#t-dep-foot").textContent=`متبقٍ ${DEPS.length-depDone} من المهام التأسيسية`;
   $("#t-risk").textContent=riskOpen;

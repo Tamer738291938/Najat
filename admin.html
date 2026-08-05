@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>تحرير البيانات — لوحة متابعة الخطة التشغيلية | مدارس النجاة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --najat-blue:#004D72;--najat-green:#48A750;--teal:#007E8B;--navy-deep:#003149;
+  --charcoal:#26333A;--misty:#E8F2F4;--sand:#F4F2EB;
+  --st-done:#3F9A49;--st-prog:#1D6F9E;--st-idle:#8A97A8;--st-late:#C64934;
+  --ink:#26333A;--ink-2:#5A6B76;--ink-3:#8A97A8;
+  --surface:#FFFFFF;--bg:#F4F2EB;--line:#E3E7E4;
+  --shadow:0 1px 2px rgba(0,49,73,.05),0 6px 22px rgba(0,49,73,.07);
+  --font-head:'Noto Kufi Arabic','Noto Sans Arabic',system-ui,sans-serif;
+  --font-body:'Noto Sans Arabic',system-ui,sans-serif;
+  --font-num:'Inter','Noto Sans Arabic',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-body);background:var(--bg);color:var(--ink);font-size:14.5px;line-height:1.7;min-height:100vh}
+.num{font-family:var(--font-num);font-feature-settings:"tnum"}
+
+/* رأس الصفحة */
+.topbar{background:linear-gradient(135deg,#003149,#004D72 60%,#007E8B);color:#fff;padding:16px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.topbar h1{font-family:var(--font-head);font-size:17px;font-weight:700}
+.topbar .sub{font-size:12px;color:rgba(255,255,255,.75)}
+.topbar .grow{flex:1}
+.topbar a,.topbar button.linkish{color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:7px 16px;font-size:12.5px;text-decoration:none;font-family:var(--font-body);cursor:pointer}
+.topbar a:hover,.topbar button.linkish:hover{background:rgba(255,255,255,.2)}
+
+.wrap{max-width:1180px;margin:0 auto;padding:26px 24px 60px}
+
+/* الدخول */
+.login-box{max-width:420px;margin:8vh auto;background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:36px 32px;text-align:center;border-top:5px solid var(--najat-green)}
+.login-box h2{font-family:var(--font-head);font-size:19px;color:var(--navy-deep);margin-bottom:6px}
+.login-box p{font-size:13px;color:var(--ink-2);margin-bottom:22px}
+.login-box input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 16px;font-size:15px;font-family:var(--font-body);text-align:center;letter-spacing:2px}
+.login-box input:focus{outline:none;border-color:var(--teal)}
+.btn{appearance:none;border:0;background:var(--najat-blue);color:#fff;border-radius:12px;padding:11px 28px;font-family:var(--font-head);font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--navy-deep)}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn.green{background:var(--najat-green)}
+.btn.green:hover{background:#3a8a42}
+.login-box .btn{width:100%;margin-top:16px}
+.err{color:var(--st-late);font-size:13px;margin-top:12px;min-height:20px}
+
+/* تبويبات */
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:20px;overflow-x:auto}
+.tabs button{appearance:none;border:0;background:none;font-family:var(--font-head);font-size:14px;font-weight:600;color:var(--ink-2);padding:12px 18px 10px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tabs button.active{color:var(--najat-blue);border-bottom-color:var(--najat-green)}
+
+.panel{display:none}.panel.active{display:block;animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.hint{font-size:12.5px;color:var(--ink-2);margin-bottom:14px}
+.savebar{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--line);margin:18px -24px -60px;padding:14px 24px;display:flex;align-items:center;gap:14px;box-shadow:0 -6px 18px rgba(0,49,73,.06)}
+.dirty-note{font-size:12.5px;color:var(--ink-2)}
+.dirty-note b{color:var(--st-late)}
+
+/* جداول التحرير */
+.tbl{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:680px}
+th{font-family:var(--font-head);font-size:12px;font-weight:600;color:var(--ink-2);text-align:right;padding:12px 14px;background:var(--misty);white-space:nowrap;position:sticky;top:0}
+td{padding:9px 14px;border-bottom:1px solid #EFF2EF;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.idx{font-family:var(--font-num);font-weight:600;color:var(--ink-3)}
+.kpi-code{font-family:var(--font-num);font-size:11px;font-weight:600;color:var(--najat-blue);background:#E7F0F6;border-radius:7px;padding:2px 8px;white-space:nowrap}
+.rowname{font-weight:600;color:var(--charcoal);max-width:340px}
+.small{font-size:11.5px;color:var(--ink-2)}
+select,td input[type=text],td input[type=number]{border:1.5px solid var(--line);border-radius:9px;padding:6px 10px;font-family:var(--font-body);font-size:12.5px;background:#fff;color:var(--ink);min-width:110px}
+td input[type=number]{font-family:var(--font-num);width:92px;min-width:92px;text-align:center}
+td input[type=text]{width:210px}
+select:focus,td input:focus{outline:none;border-color:var(--teal)}
+.changed{border-color:#D9A62E!important;background:#FDF8EA!important}
+sel-status{display:contents}
+.st-منجز{color:var(--st-done);font-weight:700}.st-جارٍ{color:var(--st-prog);font-weight:700}
+.st-متأخر{color:var(--st-late);font-weight:700}
+
+/* مدخلات المدارس */
+.form-card{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:22px 24px;margin-bottom:16px}
+.form-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:6px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:5px}
+.field select,.field input{border:1.5px solid var(--line);border-radius:10px;padding:9px 14px;font-family:var(--font-body);font-size:13.5px;background:#fff;min-width:220px}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px;margin-top:14px}
+.kitem{border:1px solid var(--line);border-radius:11px;padding:10px 14px;display:flex;gap:10px;align-items:center;background:#FDFDFC}
+.kitem .meta{flex:1;min-width:0}
+.kitem .kname{font-size:12px;font-weight:600;color:var(--charcoal);line-height:1.5}
+.kitem .ktarget{font-size:11px;color:var(--teal)}
+.kitem input{border:1.5px solid var(--line);border-radius:9px;padding:7px 8px;width:82px;text-align:center;font-family:var(--font-num);font-size:13px}
+.kitem input:focus{outline:none;border-color:var(--teal)}
+
+/* توست وإشعارات */
+#toast{position:fixed;bottom:24px;right:50%;transform:translateX(50%);background:var(--navy-deep);color:#fff;border-radius:12px;padding:12px 26px;font-size:13.5px;box-shadow:0 10px 30px rgba(0,25,40,.35);opacity:0;transition:opacity .25s;z-index:99;pointer-events:none}
+#toast.show{opacity:1}
+#toast.ok{background:var(--st-done)}
+#toast.bad{background:var(--st-late)}
+.setup-note{max-width:640px;margin:10vh auto;background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:34px;border-right:5px solid #D9A62E}
+.setup-note h2{font-family:var(--font-head);font-size:17px;color:var(--navy-deep);margin-bottom:10px}
+.setup-note p{font-size:13.5px;color:var(--ink-2)}
+@media (max-width:640px){.wrap{padding:18px 12px 60px}.savebar{margin:18px -12px -60px;padding:12px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>تحرير بيانات الخطة التشغيلية 2026-2027</h1>
+    <div class="sub">مدارس النجاة — صفحة المنسق المركزي (محمية)</div>
+  </div>
+  <div class="grow"></div>
+  <a href="./">↩ عرض الداشبورد</a>
+  <button class="linkish" id="logout" style="display:none">تسجيل الخروج</button>
+</div>
+
+<div class="wrap">
+
+  <!-- إشعار عدم الإعداد -->
+  <div id="v-setup" class="setup-note" style="display:none">
+    <h2>⚙ الصفحة غير مفعّلة بعد</h2>
+    <p>لم يُربط الخادم الخلفي بعد. بعد تشغيل سكربت الإعداد في Google Apps Script ونشر الـ Web app،
+    يضع المطوّر معرّف الجدول ورابط الخادم في إعدادات هذه الصفحة فتعمل مباشرة.</p>
+  </div>
+
+  <!-- الدخول -->
+  <div id="v-login" class="login-box" style="display:none">
+    <h2>🔐 الدخول للتحرير</h2>
+    <p>هذه الصفحة مخصصة للمنسق المركزي. تُفحص كلمة المرور في الخادم عند كل عملية حفظ.</p>
+    <input type="password" id="pw" placeholder="كلمة المرور" autocomplete="current-password">
+    <button class="btn" id="login-btn">دخول</button>
+    <div class="err" id="login-err"></div>
+  </div>
+
+  <!-- المحرر -->
+  <div id="v-editor" style="display:none">
+    <div class="tabs" id="tabs">
+      <button data-t="acts" class="active">الأنشطة</button>
+      <button data-t="inputs">مدخلات المدارس</button>
+      <button data-t="kpis">المؤشرات</button>
+      <button data-t="deps">التبعيات الحرجة</button>
+      <button data-t="risks">المخاطر</button>
+    </div>
+
+    <section class="panel active" id="t-acts">
+      <p class="hint">حرّر <b>الحالة</b> و<b>الملاحظات</b> فقط — بقية الأعمدة ثابتة من الخطة المعتمدة. الخلايا المعدلة تُظلَّل حتى الحفظ.</p>
+      <div class="tbl"><table id="tbl-acts"><thead><tr><th>م</th><th>النشاط</th><th>المحور</th><th>المسؤول</th><th>التوقيت</th><th>الحالة</th><th>ملاحظات</th></tr></thead><tbody></tbody></table></div>
+      <div class="savebar"><button class="btn green" data-save="acts">💾 حفظ تعديلات الأنشطة</button><span class="dirty-note" id="d-acts"></span></div>
+    </section>
+
+    <section class="panel" id="t-inputs">
+      <p class="hint">فرّغ هنا ما وصلك من كل مدرسة بالإيميل. النسب أرقام من 0 إلى 100، واترك ما لم يُقس فارغاً. كل حفظ يضيف تقريراً جديداً مؤرخاً (لا يمحو السابق)، والداشبورد تعتمد الأحدث لكل مدرسة.</p>
+      <div class="form-card">
+        <div class="form-row">
+          <div class="field"><label>المدرسة</label><select id="in-school"></select></div>
+          <div class="field"><label>الفترة</label><select id="in-period"><option>الفصل الأول</option><option>نهاية العام</option></select></div>
+          <button class="btn" id="in-load" style="margin-bottom:1px">استرجاع آخر تقرير محفوظ</button>
+        </div>
+        <div class="kgrid" id="kgrid"></div>
+        <div class="form-row" style="margin-top:14px">
+          <div class="field" style="flex:1"><label>ملاحظات (اختياري)</label><input type="text" id="in-notes" style="width:100%;min-width:260px"></div>
+        </div>
+      </div>
+      <div class="savebar"><button class="btn green" data-save="inputs">💾 حفظ تقرير المدرسة</button><span class="dirty-note" id="d-inputs"></span></div>
+    </section>
+
+    <section class="panel" id="t-kpis">
+      <p class="hint">حرّر <b>خط الأساس</b> و<b>الفعلي المركزي</b> و<b>الملاحظات</b>. الفعلي المركزي يُستخدم فقط إن لم تتوفر مدخلات من المدارس لذلك المؤشر — أدخل النسب ككسر عشري (مثال: 0.65) أو كنسبة (65%).</p>
+      <div class="tbl"><table id="tbl-kpis"><thead><tr><th>الرمز</th><th>المؤشر</th><th>مستهدف ف1</th><th>مستهدف نهائي</th><th>خط الأساس</th><th>فعلي ف1 (مركزي)</th><th>فعلي نهائي (مركزي)</th><th>ملاحظات</th></tr></thead><tbody></tbody></table></div>
+      <div class="savebar"><button class="btn green" data-save="kpis">💾 حفظ تعديلات المؤشرات</button><span class="dirty-note" id="d-kpis"></span></div>
+    </section>
+
+    <section class="panel" id="t-deps">
+      <p class="hint">حرّر <b>الحالة</b> و<b>الملاحظات</b>.</p>
+      <div class="tbl"><table id="tbl-deps"><thead><tr><th>م</th><th>المهمة</th><th>المالك</th><th>الموعد النهائي</th><th>الحالة</th><th>ملاحظات</th></tr></thead><tbody></tbody></table></div>
+      <div class="savebar"><button class="btn green" data-save="deps">💾 حفظ تعديلات التبعيات</button><span class="dirty-note" id="d-deps"></span></div>
+    </section>
+
+    <section class="panel" id="t-risks">
+      <p class="hint">حرّر <b>الدرجة</b> و<b>الحالة</b> و<b>آخر مراجعة</b>.</p>
+      <div class="tbl"><table id="tbl-risks"><thead><tr><th>الرمز</th><th>الخطر</th><th>المالك</th><th>الدرجة</th><th>الحالة</th><th>آخر مراجعة</th></tr></thead><tbody></tbody></table></div>
+      <div class="savebar"><button class="btn green" data-save="risks">💾 حفظ تعديلات المخاطر</button><span class="dirty-note" id="d-risks"></span></div>
+    </section>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================= الإعدادات — يضبطها المطوّر بعد تشغيل سكربت الإعداد ================= */
+const CONFIG={
+  SHEET_ID:"",   /* معرّف Google Sheet */
+  API:""         /* رابط الـ Web app من Apps Script */
+};
+
+const $=s=>document.querySelector(s);
+const PW_KEY="najat_admin_pw";
+let DATA={acts:[],kpis:[],deps:[],risks:[],schools:[],inputs:[]};
+let dirty={acts:new Map(),kpis:new Map(),deps:new Map(),risks:new Map()};
+
+/* ---------- أدوات ---------- */
+function toast(msg,cls){const t=$("#toast");t.textContent=msg;t.className="show "+(cls||"");setTimeout(()=>t.className="",2600);}
+function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function num(v){if(v==null)return null;const s=String(v).trim();if(s===""||s==="—")return null;
+  const p=s.includes("%");const n=parseFloat(s.replace(/[%,\s]/g,""));return isNaN(n)?null:(p?n/100:n);}
+function parseCSV(text){const rows=[];let row=[],cur="",q=false;
+  for(let i=0;i<text.length;i++){const ch=text[i];
+    if(q){if(ch==='"'){if(text[i+1]==='"'){cur+='"';i++}else q=false}else cur+=ch}
+    else{if(ch==='"')q=true;else if(ch===","){row.push(cur);cur=""}
+      else if(ch==="\n"){row.push(cur);rows.push(row);row=[];cur=""}
+      else if(ch!=="\r")cur+=ch}}
+  if(cur!==""||row.length){row.push(cur);rows.push(row)}
+  return rows.filter(r=>r.some(c=>c.trim()!==""));}
+async function fetchTab(name){
+  const u=`https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
+  const r=await fetch(u,{cache:"no-store"});
+  if(!r.ok)throw new Error("تعذر قراءة "+name);
+  const t=await r.text();
+  if(t.trimStart().startsWith("<"))throw new Error("لا صلاحية قراءة للورقة "+name);
+  return parseCSV(t);}
+async function api(payload){
+  payload.password=sessionStorage.getItem(PW_KEY)||"";
+  const r=await fetch(CONFIG.API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
+  const j=await r.json();
+  if(!j.ok)throw new Error(j.error||"فشل غير معروف");
+  return j;}
+
+/* ---------- تحميل البيانات ---------- */
+async function loadAll(){
+  const [a,k,d,r,s,inp]=await Promise.all([
+    fetchTab("الأنشطة"),fetchTab("المؤشرات"),fetchTab("التبعيات الحرجة"),
+    fetchTab("المخاطر"),fetchTab("المدارس"),fetchTab("مدخلات المدارس")]);
+  DATA.acts=a.slice(1).filter(x=>num(x[0])!=null);
+  DATA.kpis=k.slice(1).filter(x=>/^KPI/.test(x[0]));
+  DATA.deps=d.slice(1).filter(x=>num(x[0])!=null);
+  DATA.risks=r.slice(1).filter(x=>/^R\d/.test(x[0]));
+  DATA.schools=s.slice(1).map(x=>x[0]).filter(Boolean);
+  DATA.inputsHead=inp[0]||[];
+  DATA.inputs=inp.slice(1);
+  renderAll();
+}
+
+/* ---------- عناصر تحرير ---------- */
+function statusSel(cur,opts){
+  return `<select data-edit>${opts.map(o=>`<option ${o===cur?"selected":""}>${o}</option>`).join("")}</select>`;}
+function markDirty(section,key,col,val,el){
+  if(!dirty[section].has(key))dirty[section].set(key,{});
+  dirty[section].get(key)[col]=val;
+  el.classList.add("changed");
+  $("#d-"+section).innerHTML=`تعديلات غير محفوظة: <b>${dirty[section].size}</b> صف`;}
+
+/* ---------- الأنشطة / التبعيات / المخاطر / المؤشرات ---------- */
+function renderActs(){
+  $("#tbl-acts tbody").innerHTML=DATA.acts.map(x=>`<tr>
+    <td class="idx">${esc(x[0])}</td><td class="rowname">${esc(x[1])}</td>
+    <td class="small">${esc(x[2])}</td><td class="small">${esc(x[4])}</td><td class="small">${esc(x[5])}</td>
+    <td data-k="${esc(x[0])}" data-c="الحالة">${statusSel(x[6],["منجز","جارٍ","لم يبدأ","متأخر"])}</td>
+    <td data-k="${esc(x[0])}" data-c="ملاحظات"><input type="text" data-edit value="${esc(x[7]||"")}"></td></tr>`).join("");
+  hook("acts","#tbl-acts");}
+function renderDeps(){
+  $("#tbl-deps tbody").innerHTML=DATA.deps.map(x=>`<tr>
+    <td class="idx">${esc(x[0])}</td><td class="rowname">${esc(x[1])}</td>
+    <td class="small">${esc(x[2])}</td><td class="small">${esc(x[3])}</td>
+    <td data-k="${esc(x[0])}" data-c="الحالة">${statusSel(x[4],["منجز","جارٍ","لم يبدأ","متأخر"])}</td>
+    <td data-k="${esc(x[0])}" data-c="ملاحظات"><input type="text" data-edit value="${esc(x[5]||"")}"></td></tr>`).join("");
+  hook("deps","#tbl-deps");}
+function renderRisks(){
+  $("#tbl-risks tbody").innerHTML=DATA.risks.map(x=>`<tr>
+    <td class="idx">${esc(x[0])}</td><td class="rowname">${esc(x[1])}</td><td class="small">${esc(x[4])}</td>
+    <td data-k="${esc(x[0])}" data-c="الدرجة">${statusSel(x[2],["عالية","متوسطة","منخفضة"])}</td>
+    <td data-k="${esc(x[0])}" data-c="الحالة">${statusSel(x[5],["مفتوح","تحت السيطرة","مغلق"])}</td>
+    <td data-k="${esc(x[0])}" data-c="آخر مراجعة"><input type="text" data-edit value="${esc(x[6]||"")}" style="width:130px"></td></tr>`).join("");
+  hook("risks","#tbl-risks");}
+function renderKpis(){
+  $("#tbl-kpis tbody").innerHTML=DATA.kpis.map(x=>`<tr>
+    <td><span class="kpi-code">${esc(x[0])}</span></td>
+    <td class="rowname" style="font-weight:500;font-size:12px">${esc(x[1])}</td>
+    <td class="num small">${esc(x[6]||"—")}</td><td class="num small">${esc(x[9]||"—")}</td>
+    <td data-k="${esc(x[0])}" data-c="خط الأساس"><input type="text" data-edit value="${esc(x[5]||"")}" style="width:80px;text-align:center"></td>
+    <td data-k="${esc(x[0])}" data-c="فعلي الفصل الأول"><input type="text" data-edit value="${esc(x[7]||"")}" style="width:80px;text-align:center"></td>
+    <td data-k="${esc(x[0])}" data-c="فعلي نهاية العام"><input type="text" data-edit value="${esc(x[10]||"")}" style="width:80px;text-align:center"></td>
+    <td data-k="${esc(x[0])}" data-c="ملاحظات"><input type="text" data-edit value="${esc(x[12]||"")}" style="width:170px"></td></tr>`).join("");
+  hook("kpis","#tbl-kpis");}
+function hook(section,tblSel){
+  document.querySelectorAll(tblSel+" [data-edit]").forEach(el=>{
+    el.addEventListener("change",()=>{
+      const td=el.closest("[data-k]");
+      markDirty(section,td.dataset.k,td.dataset.c,el.value,el);});});}
+
+/* ---------- مدخلات المدارس ---------- */
+function renderInputsForm(){
+  $("#in-school").innerHTML=DATA.schools.map(s=>`<option>${esc(s)}</option>`).join("");
+  $("#kgrid").innerHTML=DATA.kpis.map(x=>{
+    const cnt=(x[12]||"").includes("عدد");
+    const t1=x[6]||"—",tY=x[9]||"—";
+    return `<div class="kitem">
+      <div class="meta"><div class="kname"><span class="kpi-code">${esc(x[0])}</span> ${esc(x[1])}</div>
+      <div class="ktarget">مستهدف ف1: ${esc(t1)} · نهائي: ${esc(tY)}${cnt?" · (عدد)":" · (%)"}</div></div>
+      <input type="number" step="any" min="0" ${cnt?"":'max="100"'} data-code="${esc(x[0])}" placeholder="—"></div>`;}).join("");}
+function loadLatestInput(){
+  const school=$("#in-school").value,period=$("#in-period").value;
+  const head=DATA.inputsHead;
+  const iS=head.findIndex(h=>h.includes("المدرسة")),iP=head.findIndex(h=>h.includes("الفترة"));
+  let best=null;
+  DATA.inputs.forEach(r=>{
+    if((r[iS]||"").trim()===school&&(r[iP]||"").trim()===period){
+      const t=new Date(r[0]).getTime()||0;
+      if(!best||t>=best.t)best={t,r};}});
+  document.querySelectorAll("#kgrid input").forEach(inp=>inp.value="");
+  if(!best){toast("لا يوجد تقرير سابق لهذه المدرسة والفترة","");return;}
+  head.forEach((h,i)=>{
+    const m=String(h).match(/KPI-\d{2}/);
+    if(m){const el=document.querySelector(`#kgrid input[data-code="${m[0]}"]`);
+      if(el&&best.r[i]!=="")el.value=best.r[i];}});
+  toast("استُرجع آخر تقرير محفوظ ("+new Date(best.t).toLocaleDateString("ar-EG")+")","ok");}
+
+/* ---------- الحفظ ---------- */
+const SHEET_OF={acts:"الأنشطة",kpis:"المؤشرات",deps:"التبعيات الحرجة",risks:"المخاطر"};
+async function save(section,btn){
+  btn.disabled=true;
+  try{
+    if(section==="inputs"){
+      const values={};let n=0;
+      document.querySelectorAll("#kgrid input").forEach(inp=>{
+        if(inp.value!==""){values[inp.dataset.code]=parseFloat(inp.value);n++;}});
+      if(!n){toast("لم تُدخل أي قيمة","bad");return;}
+      await api({action:"addSchoolInput",school:$("#in-school").value,period:$("#in-period").value,
+                 values,notes:$("#in-notes").value});
+      toast(`حُفظ تقرير ${$("#in-school").value} (${n} مؤشراً) ✓`,"ok");
+      await loadAll();
+    }else{
+      if(!dirty[section].size){toast("لا تعديلات للحفظ","");return;}
+      const rows=[...dirty[section].entries()].map(([key,values])=>({key,values}));
+      const res=await api({action:"updateRows",sheet:SHEET_OF[section],rows});
+      dirty[section].clear();$("#d-"+section).textContent="";
+      toast(`حُفظ ${res.updated} صفاً ✓`,"ok");
+      await loadAll();
+    }
+  }catch(err){toast("خطأ: "+err.message,"bad");}
+  finally{btn.disabled=false;}
+}
+
+/* ---------- تجميع ---------- */
+function renderAll(){renderActs();renderKpis();renderDeps();renderRisks();renderInputsForm();
+  Object.values(dirty).forEach(m=>m.clear());
+  document.querySelectorAll(".dirty-note").forEach(d=>d.textContent="");}
+
+/* ---------- الدخول والتنقل ---------- */
+async function tryLogin(pw){
+  sessionStorage.setItem(PW_KEY,pw);
+  await api({action:"ping"});
+}
+function showEditor(){
+  $("#v-login").style.display="none";$("#v-editor").style.display="block";
+  $("#logout").style.display="inline-block";
+  loadAll().catch(e=>toast("تعذر تحميل البيانات: "+e.message,"bad"));}
+
+document.querySelectorAll("#tabs button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");$("#t-"+b.dataset.t).classList.add("active");}));
+document.querySelectorAll("[data-save]").forEach(b=>b.addEventListener("click",()=>save(b.dataset.save,b)));
+$("#in-load").addEventListener("click",loadLatestInput);
+$("#login-btn").addEventListener("click",async()=>{
+  const btn=$("#login-btn");btn.disabled=true;$("#login-err").textContent="";
+  try{await tryLogin($("#pw").value);showEditor();}
+  catch(e){$("#login-err").textContent=e.message;sessionStorage.removeItem(PW_KEY);}
+  finally{btn.disabled=false;}});
+$("#pw").addEventListener("keydown",e=>{if(e.key==="Enter")$("#login-btn").click()});
+$("#logout").addEventListener("click",()=>{sessionStorage.removeItem(PW_KEY);location.reload();});
+
+/* ---------- البدء ---------- */
+if(!CONFIG.SHEET_ID||!CONFIG.API){$("#v-setup").style.display="block";}
+else if(sessionStorage.getItem(PW_KEY)){
+  api({action:"ping"}).then(showEditor).catch(()=>{sessionStorage.removeItem(PW_KEY);$("#v-login").style.display="block";});
+}else{$("#v-login").style.display="block";}
+</script>
+</body>
+</html>
