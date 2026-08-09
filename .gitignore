@@ -1,0 +1,9 @@
+Dashboard/site/
+
+# فيديوهات
+*.mp4
+
+# نسخ احتياطية
+*.backup.*
+Docs/Plan - Copy.html
+Docs/*نسخة-أصلية*
