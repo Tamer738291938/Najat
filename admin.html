@@ -140,8 +140,6 @@ sel-status{display:contents}
       <button data-t="acts" class="active">الأنشطة</button>
       <button data-t="inputs">مدخلات المدارس</button>
       <button data-t="kpis">المؤشرات</button>
-      <button data-t="deps">التبعيات الحرجة</button>
-      <button data-t="risks">المخاطر</button>
     </div>
 
     <section class="panel active" id="t-acts">
@@ -172,17 +170,6 @@ sel-status{display:contents}
       <div class="savebar"><button class="btn green" data-save="kpis">💾 حفظ تعديلات المؤشرات</button><span class="dirty-note" id="d-kpis"></span></div>
     </section>
 
-    <section class="panel" id="t-deps">
-      <p class="hint">حرّر <b>الحالة</b> و<b>الملاحظات</b>.</p>
-      <div class="tbl"><table id="tbl-deps"><thead><tr><th>م</th><th>المهمة</th><th>المالك</th><th>الموعد النهائي</th><th>الحالة</th><th>ملاحظات</th></tr></thead><tbody></tbody></table></div>
-      <div class="savebar"><button class="btn green" data-save="deps">💾 حفظ تعديلات التبعيات</button><span class="dirty-note" id="d-deps"></span></div>
-    </section>
-
-    <section class="panel" id="t-risks">
-      <p class="hint">حرّر <b>الدرجة</b> و<b>الحالة</b> و<b>آخر مراجعة</b>.</p>
-      <div class="tbl"><table id="tbl-risks"><thead><tr><th>الرمز</th><th>الخطر</th><th>المالك</th><th>الدرجة</th><th>الحالة</th><th>آخر مراجعة</th></tr></thead><tbody></tbody></table></div>
-      <div class="savebar"><button class="btn green" data-save="risks">💾 حفظ تعديلات المخاطر</button><span class="dirty-note" id="d-risks"></span></div>
-    </section>
   </div>
 </div>
 
@@ -197,11 +184,12 @@ const CONFIG={
 
 const $=s=>document.querySelector(s);
 const PW_KEY="najat_admin_pw";
-let DATA={acts:[],kpis:[],deps:[],risks:[],schools:[],inputs:[]};
-let dirty={acts:new Map(),kpis:new Map(),deps:new Map(),risks:new Map()};
+let DATA={acts:[],kpis:[],schools:[],inputs:[]};
+let dirty={acts:new Map(),kpis:new Map()};
 
 /* ---------- أدوات ---------- */
 function toast(msg,cls){const t=$("#toast");t.textContent=msg;t.className="show "+(cls||"");setTimeout(()=>t.className="",2600);}
+function fmtT(v){const n=num(v);return n==null?"—":(n<=1?Math.round(n*100)+"%":n);}
 function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function num(v){if(v==null)return null;const s=String(v).trim();if(s===""||s==="—")return null;
   const p=s.includes("%");const n=parseFloat(s.replace(/[%,\s]/g,""));return isNaN(n)?null:(p?n/100:n);}
@@ -229,13 +217,11 @@ async function api(payload){
 
 /* ---------- تحميل البيانات ---------- */
 async function loadAll(){
-  const [a,k,d,r,s,inp]=await Promise.all([
-    fetchTab("الأنشطة"),fetchTab("المؤشرات"),fetchTab("التبعيات الحرجة"),
-    fetchTab("المخاطر"),fetchTab("المدارس"),fetchTab("مدخلات المدارس")]);
+  const [a,k,s,inp]=await Promise.all([
+    fetchTab("الأنشطة"),fetchTab("المؤشرات"),
+    fetchTab("المدارس"),fetchTab("مدخلات المدارس")]);
   DATA.acts=a.slice(1).filter(x=>num(x[0])!=null);
   DATA.kpis=k.slice(1).filter(x=>/^KPI/.test(x[0]));
-  DATA.deps=d.slice(1).filter(x=>num(x[0])!=null);
-  DATA.risks=r.slice(1).filter(x=>/^R\d/.test(x[0]));
   DATA.schools=s.slice(1).map(x=>x[0]).filter(Boolean);
   DATA.inputsHead=inp[0]||[];
   DATA.inputs=inp.slice(1);
@@ -259,25 +245,11 @@ function renderActs(){
     <td data-k="${esc(x[0])}" data-c="الحالة">${statusSel(x[6],["منجز","جارٍ","لم يبدأ","متأخر"])}</td>
     <td data-k="${esc(x[0])}" data-c="ملاحظات"><input type="text" data-edit value="${esc(x[7]||"")}"></td></tr>`).join("");
   hook("acts","#tbl-acts");}
-function renderDeps(){
-  $("#tbl-deps tbody").innerHTML=DATA.deps.map(x=>`<tr>
-    <td class="idx">${esc(x[0])}</td><td class="rowname">${esc(x[1])}</td>
-    <td class="small">${esc(x[2])}</td><td class="small">${esc(x[3])}</td>
-    <td data-k="${esc(x[0])}" data-c="الحالة">${statusSel(x[4],["منجز","جارٍ","لم يبدأ","متأخر"])}</td>
-    <td data-k="${esc(x[0])}" data-c="ملاحظات"><input type="text" data-edit value="${esc(x[5]||"")}"></td></tr>`).join("");
-  hook("deps","#tbl-deps");}
-function renderRisks(){
-  $("#tbl-risks tbody").innerHTML=DATA.risks.map(x=>`<tr>
-    <td class="idx">${esc(x[0])}</td><td class="rowname">${esc(x[1])}</td><td class="small">${esc(x[4])}</td>
-    <td data-k="${esc(x[0])}" data-c="الدرجة">${statusSel(x[2],["عالية","متوسطة","منخفضة"])}</td>
-    <td data-k="${esc(x[0])}" data-c="الحالة">${statusSel(x[5],["مفتوح","تحت السيطرة","مغلق"])}</td>
-    <td data-k="${esc(x[0])}" data-c="آخر مراجعة"><input type="text" data-edit value="${esc(x[6]||"")}" style="width:130px"></td></tr>`).join("");
-  hook("risks","#tbl-risks");}
 function renderKpis(){
   $("#tbl-kpis tbody").innerHTML=DATA.kpis.map(x=>`<tr>
     <td><span class="kpi-code">${esc(x[0])}</span></td>
     <td class="rowname" style="font-weight:500;font-size:12px">${esc(x[1])}</td>
-    <td class="num small">${esc(x[6]||"—")}</td><td class="num small">${esc(x[9]||"—")}</td>
+    <td class="num small">${fmtT(x[6])}</td><td class="num small">${fmtT(x[9])}</td>
     <td data-k="${esc(x[0])}" data-c="خط الأساس"><input type="text" data-edit value="${esc(x[5]||"")}" style="width:80px;text-align:center"></td>
     <td data-k="${esc(x[0])}" data-c="فعلي الفصل الأول"><input type="text" data-edit value="${esc(x[7]||"")}" style="width:80px;text-align:center"></td>
     <td data-k="${esc(x[0])}" data-c="فعلي نهاية العام"><input type="text" data-edit value="${esc(x[10]||"")}" style="width:80px;text-align:center"></td>
@@ -294,7 +266,7 @@ function renderInputsForm(){
   $("#in-school").innerHTML=DATA.schools.map(s=>`<option>${esc(s)}</option>`).join("");
   $("#kgrid").innerHTML=DATA.kpis.map(x=>{
     const cnt=(x[12]||"").includes("عدد");
-    const t1=x[6]||"—",tY=x[9]||"—";
+    const t1=fmtT(x[6]),tY=fmtT(x[9]);
     return `<div class="kitem">
       <div class="meta"><div class="kname"><span class="kpi-code">${esc(x[0])}</span> ${esc(x[1])}</div>
       <div class="ktarget">مستهدف ف1: ${esc(t1)} · نهائي: ${esc(tY)}${cnt?" · (عدد)":" · (%)"}</div></div>
@@ -317,7 +289,7 @@ function loadLatestInput(){
   toast("استُرجع آخر تقرير محفوظ ("+new Date(best.t).toLocaleDateString("ar-EG")+")","ok");}
 
 /* ---------- الحفظ ---------- */
-const SHEET_OF={acts:"الأنشطة",kpis:"المؤشرات",deps:"التبعيات الحرجة",risks:"المخاطر"};
+const SHEET_OF={acts:"الأنشطة",kpis:"المؤشرات"};
 async function save(section,btn){
   btn.disabled=true;
   try{
@@ -343,7 +315,7 @@ async function save(section,btn){
 }
 
 /* ---------- تجميع ---------- */
-function renderAll(){renderActs();renderKpis();renderDeps();renderRisks();renderInputsForm();
+function renderAll(){renderActs();renderKpis();renderInputsForm();
   Object.values(dirty).forEach(m=>m.clear());
   document.querySelectorAll(".dirty-note").forEach(d=>d.textContent="");}
 
